@@ -60,7 +60,7 @@ module AocRunner {
   function toStr(iores: FileIO.Wrappers.Result<seq<bv8>, string> ): string {
     match iores {
         case Success(value) => seq(|value|, i requires 0 <= i < |value| => value[i] as char)
-        case Failure(e) => ""
+        case Failure(e) => e
     }
     
   }
@@ -71,6 +71,10 @@ module AocRunner {
         var test := |args| > 3 && args[3] == "-t";
         var file := "problems/"+problem+"/"+ if test then "example.txt" else "input.txt";
         var input := FileIO.ReadBytesFromFile(file);
+        match input {
+            case Failure(e) => print e;
+            case Success(value) => print "\n";
+        }
 
         match problem {
             case "0" => {
