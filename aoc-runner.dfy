@@ -1,5 +1,6 @@
 include "libraries/src/dafny/FileIO/FileIO.dfy"
 include "libraries/src/Wrappers.dfy"
+include "problems/0/Problem0.dfy"
 include "problems/1/Problem1.dfy"
 include "problems/2/Problem2.dfy"
 include "problems/3/Problem3.dfy"
@@ -25,10 +26,11 @@ include "problems/22/Problem22.dfy"
 include "problems/23/Problem23.dfy"
 include "problems/24/Problem24.dfy"
 include "problems/25/Problem25.dfy"
-//run --no-verify --unicode-char:false --target:cs "aoc-runner.dfy" --input "libraries/src/FileIO/FileIO.cs" -- "1" "System.ArgumentException:"
+//run --no-verify --unicode-char:false --target:cs "aoc-runner.dfy" --input "libraries/src/FileIO/FileIO.cs" -- "1" "1" "System.ArgumentException:"
 
 module AocRunner {
   import opened Dafny.FileIO
+  import opened Problem0
   import opened Problem1
   import opened Problem2
   import opened Problem3
@@ -69,21 +71,452 @@ module AocRunner {
         var test := |args| > 3 && args[3] == "-t";
         var file := "problems/"+problem+"/"+ if test then "example.txt" else "input.txt";
         var input := FileIO.ReadBytesFromFile(file);
+
         match problem {
+            case "0" => {
+                match part {
+                    case "1" => {
+                        var res := problem0_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        var res := problem0_2(toStr(input));
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
             case "1" => {
                 match part {
                     case "1" => {
                         var res := problem1_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
                         print res;
+                        print "\n";
                     }
                     case "2" => {
+                        print "Problem " + problem + " part " + part + " Result: \n";
                         var res := problem1_2(toStr(input));
                         print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "2" => {
+                match part {
+                    case "1" => {
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        var res := problem2_1(toStr(input));
+                        print "Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem2_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "3" => {
+                match part {
+                    case "1" => {
+                        var res := problem3_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem3_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "4" => {
+                match part {
+                    case "1" => {
+                        var res := problem4_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem4_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "5" => {
+                match part {
+                    case "1" => {
+                        var res := problem5_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem5_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "6" => {
+                match part {
+                    case "1" => {
+                        var res := problem6_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem6_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "7" => {
+                match part {
+                    case "1" => {
+                        var res := problem7_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem7_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "8" => {
+                match part {
+                    case "1" => {
+                        var res := problem8_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem8_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "9" => {
+                match part {
+                    case "1" => {
+                        var res := problem9_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem9_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "10" => {
+                match part {
+                    case "1" => {
+                        var res := problem10_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem10_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "11" => {
+                match part {
+                    case "1" => {
+                        var res := problem11_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem11_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "12" => {
+                match part {
+                    case "1" => {
+                        var res := problem12_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem12_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "13" => {
+                match part {
+                    case "1" => {
+                        var res := problem13_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem13_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "14" => {
+                match part {
+                    case "1" => {
+                        var res := problem14_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem14_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "15" => {
+                match part {
+                    case "1" => {
+                        var res := problem15_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem15_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "16" => {
+                match part {
+                    case "1" => {
+                        var res := problem16_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem16_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "17" => {
+                match part {
+                    case "1" => {
+                        var res := problem17_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem17_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "18" => {
+                match part {
+                    case "1" => {
+                        var res := problem18_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem18_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "19" => {
+                match part {
+                    case "1" => {
+                        var res := problem19_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem19_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "20" => {
+                match part {
+                    case "1" => {
+                        var res := problem20_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem20_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "21" => {
+                match part {
+                    case "1" => {
+                        var res := problem21_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem21_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "22" => {
+                match part {
+                    case "1" => {
+                        var res := problem22_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem22_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "23" => {
+                match part {
+                    case "1" => {
+                        var res := problem23_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem23_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "24" => {
+                match part {
+                    case "1" => {
+                        var res := problem24_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem24_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case _ => print "problem part not found";
+                }
+            }
+            case "25" => {
+                match part {
+                    case "1" => {
+                        var res := problem25_1(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
+                    }
+                    case "2" => {
+                        var res := problem25_2(toStr(input));
+                        print "Problem " + problem + " part " + part + " Result: \n";
+                        print res;
+                        print "\n";
                     }
                     case _ => print "problem part not found";
                 }
             }
             case _ => print "Problem Not found";
-        }
+        } 
     }
 }

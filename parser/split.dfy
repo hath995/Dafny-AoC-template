@@ -39,4 +39,12 @@ module Split {
         else 
             false
     }
+
+    function splitOnBreak(s: string): seq<string> {
+        if Contains(s, "\r\n") then split(s,"\r\n") else split(s,"\n")
+    }
+
+    function splitOnDoubleBreak(s: string): seq<string> {
+        if Contains(s, "\r\n") then split(s,"\r\n\r\n") else split(s,"\n\n")
+    }
 }
