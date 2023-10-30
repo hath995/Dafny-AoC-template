@@ -17,6 +17,6 @@ Install the Dafny VS-Code plugin [here](https://marketplace.visualstudio.com/ite
 Advent of Code has 25 problems and each problem has two parts. Traditionally, the first part is building up to the more complex second part. 
 
 Steps:
-1. Copy the example input into the problems/<number>/example.txt
-2. Download the problem input into problems/<number>/input.txt
+1. Copy the example input into the problems/\<number\>/example.txt
+2. Download the problem input into problems/\<number\>/input.txt
 3. Depending on your os, run `aoc.ps1` or `aoc.sh`
