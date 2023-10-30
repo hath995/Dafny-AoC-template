@@ -1,0 +1,4 @@
+*.dll
+*.cs
+libraries
+*.runtimeconfig.json
