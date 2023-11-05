@@ -1,0 +1,1 @@
+Dafny.exe run --no-verify --unicode-char:false --target:cs "aoc-runner.dfy" --input "libraries/src/FileIO/FileIO.cs" -- "0" "2" "-t"

@@ -1,0 +1,1 @@
+dafny run --no-verify --unicode-char:false --target:cs "aoc-runner.dfy" --input "libraries/src/FileIO/FileIO.cs" --
