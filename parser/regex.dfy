@@ -23,7 +23,7 @@ module RegEx {
         var nalt := 0;
         var natom := 0;
         var groupid := 1;
-        var groups: seq<int> := [];
+        var groups: seq<nat> := [];
         var parens: seq<Paren> :=[];
         for i := 0 to |re| 
             invariant |groups| == |parens|
@@ -73,6 +73,7 @@ module RegEx {
                     natom := next.natom;
                     parens := parens[0..|parens|-1];
                     natom := natom + 1;
+                    assume |groups| > 0;
                     buf := buf + [GroupEnd(groups[|groups|-1])];
                     groups := groups[0..|groups|-1];
                     // print "nalt: ";
@@ -370,6 +371,24 @@ module RegEx {
         assume forall i :: 0 <= i < |e.out| ==>  fresh(OutSet(e.out[i]));
         patch(e, FragC(matchState, []));
         return e.start;
+    }
+
+    method addstate(l: seq<State>, s: State?) returns (res: Result<seq<State>, string>)
+        decreases *
+    {
+        if s == null {
+            return Failure("Added state was null");
+        } else if s!=null && s.c.Split? {
+            var next := addstate(l, s.out);
+            if next.Success? {
+                res := addstate(next.Extract(), s.out1);
+            }else{
+                res := next;
+            }
+            
+        } else {
+            return Success(l+[s]);
+        }
     }
 
     method ReMatch(re: string, targetString: string) returns (matches: bool, captures: seq<string>)
