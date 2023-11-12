@@ -353,11 +353,11 @@ module RegEx {
                     s.origin := postfix[i];
                     states := states+[s];
                     sid := sid+1;
+                    assume {:axiom} forall i :: 0 <= i < |e1.out| ==>  fresh(OutSet(e1.out[i]));
                     patch(e1, FragC(s,[]));
                     stack := stack + [FragC(s, [Out1(s)])];
                 }
                 case Plus => {
-                    print "\nPlus case hit\n";
                     assume {:axiom} |stack| > 0;
                     expect |stack| > 0, "stack length was not greater than 1";
                     var e1 := stack[|stack|-1];
@@ -366,6 +366,7 @@ module RegEx {
                     s.origin := postfix[i];
                     states := states+[s];
                     sid := sid+1;
+                    assume {:axiom} forall i :: 0 <= i < |e1.out| ==>  fresh(OutSet(e1.out[i]));
                     patch(e1, FragC(s, []));
                     stack := stack+[FragC(e1.start, [Out1(s)])];
                 }
@@ -402,6 +403,7 @@ module RegEx {
 
     method step(clist: seq<State>, c: char, i: int, groupCaptures: GroupCapture, completedGroupCatures: GroupCapture)
         returns (nlist: seq<State>, ngroupCaptures: GroupCapture, ncompletedGroupCatures: GroupCapture )
+        requires 0 <=i
         decreases *
     {
         nlist := [];
@@ -413,6 +415,94 @@ module RegEx {
                 var next := addstate(nlist, s.out);
                 if next.Success? {
                     nlist := next.Extract();
+                }
+                var groups: set<nat> := {};
+                while s.groups-groups != {} {
+                    var g :| g in s.groups-groups;
+                    if g !in ngroupCaptures {
+                        ngroupCaptures := ngroupCaptures[g := (i as nat,0)];
+                    }
+                    groups := groups + {g};
+                }
+                if s.out != null {
+                    var ngroups: set<nat> := {};
+                    var soutgroups:=s.out.groups-s.groups;
+                    while soutgroups - ngroups != {}
+                        // decreases soutgroups - ngroups
+                    {
+                        var g :| g in soutgroups-ngroups;
+                        if g in ngroupCaptures {
+                            ngroupCaptures:=ngroupCaptures[g := (i+1, 0)];
+                        }
+                        ngroups := ngroups + {g};
+                    }
+
+                    var nsgroups: set<nat> := {};
+                    var sgroups:=s.groups-s.out.groups;
+                    while sgroups - nsgroups != {}
+                        // decreases soutgroups - ngroups
+                    {
+                        var g :| g in sgroups-nsgroups;
+                        if g in ngroupCaptures {
+                            ngroupCaptures:=ngroupCaptures[g := (ngroupCaptures[g].0, i+1)];
+                            ncompletedGroupCatures := ncompletedGroupCatures[g := ngroupCaptures[g]];
+                        }
+                        nsgroups := nsgroups + {g};
+                    }
+
+                    if s.out.c.Split? && s.out.out != null {
+                        var ngroups: set<nat> := {};
+                        var soutgroups:=s.out.out.groups-s.out.groups;
+                        while soutgroups - ngroups != {}
+                            // decreases soutgroups - ngroups
+                        {
+                            var g :| g in soutgroups-ngroups;
+                            if g in ngroupCaptures {
+                                ngroupCaptures := ngroupCaptures[g := (i+1, 0)];
+                            }
+                            ngroups := ngroups + {g};
+                        }
+
+                        var nsgroups: set<nat> := {};
+                        var sgroups:=s.out.groups-s.out.out.groups;
+                        while sgroups - nsgroups != {}
+                            // decreases soutgroups - ngroups
+                        {
+                            var g :| g in sgroups-nsgroups;
+                            if g in ngroupCaptures {
+                                ngroupCaptures:=ngroupCaptures[g := (ngroupCaptures[g].0, i+1)];
+                                ncompletedGroupCatures := ncompletedGroupCatures[g := ngroupCaptures[g]];
+                            }
+                            nsgroups := nsgroups + {g};
+                        }
+                    }
+
+                    if s.out.c.Split? && s.out.out1 != null {
+                        var ngroups: set<nat> := {};
+                        var soutgroups:=s.out.out1.groups-s.out.groups;
+                        while soutgroups - ngroups != {}
+                            // decreases soutgroups - ngroups
+                        {
+                            var g :| g in soutgroups-ngroups;
+                            if g in ngroupCaptures {
+                                ngroupCaptures := ngroupCaptures[g := (i+1, 0)];
+                            }
+                            ngroups := ngroups + {g};
+                        }
+
+                        var nsgroups: set<nat> := {};
+                        var sgroups:=s.out.groups-s.out.out1.groups;
+                        while sgroups - nsgroups != {}
+                            // decreases soutgroups - ngroups
+                        {
+                            var g :| g in sgroups-nsgroups;
+                            if g in ngroupCaptures {
+                                ngroupCaptures:=ngroupCaptures[g := (ngroupCaptures[g].0, i+1)];
+                                ncompletedGroupCatures := ncompletedGroupCatures[g := ngroupCaptures[g]];
+                            }
+                            nsgroups := nsgroups + {g};
+                        }
+                    }
                 }
             }
         }
@@ -446,6 +536,13 @@ module RegEx {
                 clist, groupCaptures, completedGroupCatures := step(clist, s[i], i, groupCaptures, completedGroupCatures);        
             }
             captures := [];
+            for k:= 0 to |completedGroupCatures| {
+                assume {:axiom} forall k :: k in completedGroupCatures ==> 0 <= completedGroupCatures[k].0 <= completedGroupCatures[k].1 <= |s|;
+                if k in completedGroupCatures {
+                    // assert k in completedGroupCatures;
+                    captures := captures + [s[completedGroupCatures[k].0..completedGroupCatures[k].1]];
+                }
+            }
             matches := isMatch(clist);
         }else{
             
@@ -488,9 +585,18 @@ module RegEx {
         var m1, cap1 := ReMatch("abc","abd");
         expect m1 == false, "test 2 failed";
 
-        var mm, cap2 := ReMatch("a+(b|c)","aaaaac");
-        print "problem2 ",mm, cap2;
-        expect mm == true, "test 3 failed";
+        var m2, cap2 := ReMatch("a+(b|c)+","aaaccc");
+        print "\nproblem2 ",m2, cap2;
+        expect cap2 == [['a','a','a','c','c','c'],['c']];
+        expect m2 == true, "test 3 failed";
+
+        var m3, cap3 := ReMatch("a+be*(c|d|f)g", "aabeefg");
+        print "\nproblem3 ",m3, cap3;
+        expect m3 == true, "test 4 failed";
+
+        var m4, cap4 := ReMatch("addxy ((0|1|2|3|4|5|6|7|8|9)+),((0|1|2|3|4|5|6|7|8|9)+)","addxy 12,345");
+        print "\nproblem4 ",m4, cap4;
+        expect m4 == true, "test 4 failed";
     }
 
     method Main() 
