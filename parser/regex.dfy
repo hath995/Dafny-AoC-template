@@ -73,7 +73,7 @@ module RegEx {
                     natom := next.natom;
                     parens := parens[0..|parens|-1];
                     natom := natom + 1;
-                    assume |groups| > 0;
+                    assume {:axiom} |groups| > 0;
                     buf := buf + [GroupEnd(groups[|groups|-1])];
                     groups := groups[0..|groups|-1];
                     // print "nalt: ";
@@ -124,7 +124,13 @@ module RegEx {
         }
         return Success(buf);
     }
-    datatype MatchKind = Split | Match | Wild | MatchChar(c: char)
+    datatype MatchKind = Split | Match | Wild | MatchChar(c: char) {
+        function GetChar(): char
+            requires MatchChar?
+        {
+            c
+        }
+    }
     class State {
         ghost var repr : set<object>
         var id: nat
@@ -287,12 +293,12 @@ module RegEx {
                     states := states +[null];
                 }
                 case GroupEnd(id) => {
-                    assume id in groups;
+                    assume {:axiom} id in groups;
                     expect id in groups, "Group id was not seen before group end";
                     var GroupStart := groups[id];
                     groups := groups[id := (GroupStart.0, i)];
                     states := states +[null];
-                    assume GroupStart.0 < i;
+                    assume {:axiom} GroupStart.0 < i;
                     for j := GroupStart.0 to i 
                     {
                         if(states[j] != null) {
@@ -303,19 +309,19 @@ module RegEx {
                 }
                 case Concat => {
                     // var e2 := pop(stack);
-                    assume |stack| > 1;
+                    assume {:axiom} |stack| > 1;
                     expect |stack| > 1, "stack length was not greater than 1";
                     var e2 := stack[|stack|-1];
                     stack:=stack[..|stack|-1];
                     var e1 := stack[|stack|-1];
                     stack:=stack[..|stack|-1];
-                    assume forall i :: 0 <= i < |e1.out| ==>  fresh(OutSet(e1.out[i]));
+                    assume {:axiom} forall i :: 0 <= i < |e1.out| ==>  fresh(OutSet(e1.out[i]));
                     states := states +[null];
                     patch(e1, e2);
                     stack := stack + [FragC(e1.start, e2.out)];
                 }
                 case Alt => {
-                    assume |stack| > 1;
+                    assume {:axiom} |stack| > 1;
                     expect |stack| > 1, "stack length was not greater than 1";
                     var e2 := stack[|stack|-1];
                     stack:=stack[..|stack|-1];
@@ -327,8 +333,8 @@ module RegEx {
                     sid := sid+1;
                     stack := stack+[FragC(s, e1.out+e2.out)];
                 }
-                case Option => {
-                    assume |stack| > 0;
+                case Optional => {
+                    assume {:axiom} |stack| > 0;
                     expect |stack| > 0, "stack length was not greater than 1";
                     var e1 := stack[|stack|-1];
                     stack:=stack[..|stack|-1];
@@ -339,7 +345,7 @@ module RegEx {
                     stack := stack+[FragC(s, e1.out+[Out1(s)])];
                 }
                 case Star => {
-                    assume |stack| > 0;
+                    assume {:axiom} |stack| > 0;
                     expect |stack| > 0, "stack length was not greater than 1";
                     var e1 := stack[|stack|-1];
                     stack:=stack[..|stack|-1];
@@ -351,7 +357,8 @@ module RegEx {
                     stack := stack + [FragC(s, [Out1(s)])];
                 }
                 case Plus => {
-                    assume |stack| > 0;
+                    print "\nPlus case hit\n";
+                    assume {:axiom} |stack| > 0;
                     expect |stack| > 0, "stack length was not greater than 1";
                     var e1 := stack[|stack|-1];
                     stack:=stack[..|stack|-1];
@@ -364,11 +371,11 @@ module RegEx {
                 }
             }
         }
-        assume |stack| > 0;
+        assume  {:axiom} |stack| > 0;
         expect |stack| > 0, "stack length was not greater than 1";
         var e := stack[|stack|-1];
         var matchState := new State(sid, Match, null, null, false);
-        assume forall i :: 0 <= i < |e.out| ==>  fresh(OutSet(e.out[i]));
+        assume  {:axiom} forall i :: 0 <= i < |e.out| ==>  fresh(OutSet(e.out[i]));
         patch(e, FragC(matchState, []));
         return e.start;
     }
@@ -391,15 +398,70 @@ module RegEx {
         }
     }
 
-    method ReMatch(re: string, targetString: string) returns (matches: bool, captures: seq<string>)
+    type GroupCapture = map<nat, (nat,nat)>
 
+    method step(clist: seq<State>, c: char, i: int, groupCaptures: GroupCapture, completedGroupCatures: GroupCapture)
+        returns (nlist: seq<State>, ngroupCaptures: GroupCapture, ncompletedGroupCatures: GroupCapture )
+        decreases *
+    {
+        nlist := [];
+        ngroupCaptures := groupCaptures;
+        ncompletedGroupCatures := completedGroupCatures;
+        for j:=0 to |clist| {
+            var s := clist[j];
+            if s.c.Wild? || (s.c.MatchChar? && s.c.c == c) {
+                var next := addstate(nlist, s.out);
+                if next.Success? {
+                    nlist := next.Extract();
+                }
+            }
+        }
+    }
+
+    function isMatch(clist: seq<State>): bool 
+        reads clist
+    {
+        if |clist| > 0 then if clist[0].c == Match then true else isMatch(clist[1..]) else false
+    }
+
+    method execRe(start: State, s: string) returns (matches: bool, captures: seq<string>)
+        decreases *
+    {
+        var groupCaptures: GroupCapture := map[];
+        var completedGroupCatures: GroupCapture := map[];
+        var groups: set<nat> := {};
+        while |start.groups - groups| > 0 
+            decreases start.groups - groups
+        {
+            var g :| g in start.groups - groups;
+            groupCaptures := groupCaptures[g := (0,0)];
+            groups := groups + {g};
+        }
+        var clist: seq<State> := [];
+        var startList := addstate([], start);
+        if startList.Success? {
+            clist := startList.Extract();
+            for i:=0 to |s| 
+            {
+                clist, groupCaptures, completedGroupCatures := step(clist, s[i], i, groupCaptures, completedGroupCatures);        
+            }
+            captures := [];
+            matches := isMatch(clist);
+        }else{
+            
+            matches := false;
+            captures := [];
+        }
+    }
+
+    method ReMatch(re: string, targetString: string) returns (matches: bool, captures: seq<string>)
+        decreases *
     {
         var postfix := re2post(re);
         match postfix {
             case Success(post) => {
                 var start := post2nfa([GroupStart(0)]+post+[GroupEnd(0)]);
-                matches := true;
-                captures := [];
+                matches, captures := execRe(start, targetString);
             }
             case Failure(err) => {
                 print err;
@@ -409,17 +471,6 @@ module RegEx {
         }
     }
 
-    method Main() {
-        var test := re2post("a(a+be*)(c|(d)|f)g");
-        // var test := re2post("ac+de?(fg)*");
-        print test;
-        print "\n";
-        match test {
-            case Success(value) => print seq(|value|, i requires 0 <= i < |value| => RegToChar(value[i]));
-            case Failure(err) => print err;
-        }
-        
-    }
 
     method test_re2post() {
 
@@ -427,5 +478,33 @@ module RegEx {
 
     method test_post2nfa() {
 
+    }
+    
+    method test_ReMatch() 
+        decreases *
+    {
+        var m, cap := ReMatch("abc","abc");
+        expect m == true, "test 1 failed";
+        var m1, cap1 := ReMatch("abc","abd");
+        expect m1 == false, "test 2 failed";
+
+        var mm, cap2 := ReMatch("a+(b|c)","aaaaac");
+        print "problem2 ",mm, cap2;
+        expect mm == true, "test 3 failed";
+    }
+
+    method Main() 
+        decreases *
+    {
+        // var test := re2post("a(a+be*)(c|(d)|f)g");
+        // var test := re2post("ac+de?(fg)*");
+        // print test;
+        // print "\n";
+        // match test {
+        //     case Success(value) => print seq(|value|, i requires 0 <= i < |value| => RegToChar(value[i]));
+        //     case Failure(err) => print err;
+        // }
+        
+        test_ReMatch();
     }
 }
