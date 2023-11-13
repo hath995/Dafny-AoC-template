@@ -3,7 +3,7 @@
 include "../libraries/src/Wrappers.dfy"
 module RegEx {
     import opened Wrappers
-    datatype RegexPiece = Char(value: char) | GroupStart(id: nat) | GroupEnd(id: nat) | Plus | Star | Optional | Alt | Concat
+    datatype RegexPiece = Char(value: char) | GroupStart(id: nat) | GroupEnd(id: nat) | Plus | Star | Optional | Alt | Concat | WildChar
     datatype Paren = Paren(natom: int, nalt: int)
     function RegToChar(re: RegexPiece): char {
         match re {
@@ -14,7 +14,8 @@ module RegEx {
             case Optional => '?'
             case Plus => '+'
             case Star => '*'
-            case Concat => '.'
+            case Concat => '⊕'
+            case Wild => '.'
         }
     }
 
@@ -25,6 +26,7 @@ module RegEx {
         var groupid := 1;
         var groups: seq<nat> := [];
         var parens: seq<Paren> :=[];
+        var inCharacterClass := false;
         for i := 0 to |re| 
             invariant |groups| == |parens|
         {
@@ -32,6 +34,23 @@ module RegEx {
             // print re[i];
             // print "\n";
             match re[i] {
+                case '.' => {
+                    if natom > 1 {
+                        natom := natom -1;
+                        buf := buf + [Concat];
+                    }
+                    buf := buf + [WildChar];
+                    natom := natom + 1;
+                }
+                case '[' => {
+                    print "Character class begin ", i, "\n";
+                    inCharacterClass := true;
+                }
+
+                case ']' => {
+                    print "Character class end ", i, "\n";
+                    inCharacterClass := false;
+                }
                 case '(' => {
                     if natom > 1 {
                         natom := natom -1;
@@ -281,6 +300,13 @@ module RegEx {
             invariant |states| == i
         {
             match postfix[i] {
+                case WildChar => {
+                    var s := new State(sid, Wild, null, null, false);
+                    sid := sid+1;
+                    s.origin := postfix[i];
+                    states := states +[s];
+                    stack := stack +[FragC(s,[Out(s)])];
+                }
                 case Char(c) => {
                     var s := new State(sid, MatchChar(c), null, null, false);
                     sid := sid+1;
@@ -570,7 +596,12 @@ module RegEx {
 
 
     method test_re2post() {
-
+        var res := re2post("[abc]");
+        expect res.Success?;
+        if res.Success? {
+            var value := res.Extract();
+            print seq(|value|, i requires 0 <= i < |value| => RegToChar(value[i]));
+        }
     }
 
     method test_post2nfa() {
@@ -586,17 +617,21 @@ module RegEx {
         expect m1 == false, "test 2 failed";
 
         var m2, cap2 := ReMatch("a+(b|c)+","aaaccc");
-        print "\nproblem2 ",m2, cap2;
+        // print "\nproblem2 ",m2, cap2;
         expect cap2 == [['a','a','a','c','c','c'],['c']];
         expect m2 == true, "test 3 failed";
 
         var m3, cap3 := ReMatch("a+be*(c|d|f)g", "aabeefg");
-        print "\nproblem3 ",m3, cap3;
+        // print "\nproblem3 ",m3, cap3;
         expect m3 == true, "test 4 failed";
 
         var m4, cap4 := ReMatch("addxy ((0|1|2|3|4|5|6|7|8|9)+),((0|1|2|3|4|5|6|7|8|9)+)","addxy 12,345");
-        print "\nproblem4 ",m4, cap4;
+        // print "\nproblem4 ",m4, cap4;
         expect m4 == true, "test 4 failed";
+
+        var m5, cap5 := ReMatch("add(.+)","addxy 12,355");
+        print "\nproblem5 ",m5, cap5;
+        expect m5 == true, "test 5 failed";
     }
 
     method Main() 
@@ -610,7 +645,7 @@ module RegEx {
         //     case Success(value) => print seq(|value|, i requires 0 <= i < |value| => RegToChar(value[i]));
         //     case Failure(err) => print err;
         // }
-        
+        test_re2post();
         test_ReMatch();
     }
 }
