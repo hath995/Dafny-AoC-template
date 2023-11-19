@@ -19,5 +19,11 @@ Advent of Code has 25 problems and each problem has two parts. Traditionally, th
 Steps:
 1. Copy the example input into the problems/\<number\>/example.txt
 2. Download the problem input into problems/\<number\>/input.txt
-3. Depending on your os, run `aoc.ps1` or `aoc.sh` appending the problem number (0-25) and part number (1-2) and -t or --test for using thest input.
+3. Depending on your os, run `aoc.ps1` or `aoc.sh` appending the problem number (0-25) and part number (1-2) and -t or --test for using the test input.
+
+### Example
+```
+./aoc.sh 0 1 --test
+./aoc.sh 0 2
+```
 
