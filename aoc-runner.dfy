@@ -64,7 +64,9 @@ module AocRunner {
         }
     }
 
-    method Main(args: seq<string>) {
+    method Main(args: seq<string>) 
+        decreases * 
+    {
         expect |args| > 2;
         var problem := args[1];
         var part := args[2];

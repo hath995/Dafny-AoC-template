@@ -648,4 +648,6 @@ module RegEx {
         test_re2post();
         test_ReMatch();
     }
+    
+    export provides ReMatch
 }
