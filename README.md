@@ -25,5 +25,17 @@ Steps:
 ```
 ./aoc.sh 0 1 --test
 ./aoc.sh 0 2
+.\aoc.ps1 0 1 -t
 ```
+
+### Additional resources for learning Dafny
+* [Dafny VSCode Extension](https://marketplace.visualstudio.com/items?itemName=dafny-lang.ide-vscode)
+* [Dafny Getting Started Guide](https://dafny.org/dafny/OnlineTutorial/guide)
+* [Dafny Language Reference](https://dafny.org/dafny/DafnyRef/DafnyRef.html)
+* [Dafny Power User Reference](http://leino.science/dafny-power-user/)
+* [Program Proofs book by Rustan Leino](https://a.co/d/9hNp5yX)
+* [Dafny Blog](https://dafny.org/blog/)
+* [Dafny Stackoverflow](https://stackoverflow.com/questions/tagged/dafny)
+* [My Dafny Blog](https://dev.to/hath995/dafny-programming-language-and-software-verification-system-2afi)
+* [My Dafny Repo with many verified examples](https://github.com/hath995/dafny)
 
