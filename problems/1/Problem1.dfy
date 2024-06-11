@@ -1,7 +1,7 @@
 include "../../parser/split.dfy"
 include "../../parser/parseInt.dfy"
-include "../../libraries/src/dafny/Collections/Seqs.dfy"
 module Problem1 {
+    import Std.Collections.Seq
 
     method problem1_1(input: string) returns (x: int)
     {

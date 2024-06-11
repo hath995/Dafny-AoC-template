@@ -24,5 +24,5 @@ elif ! [[ $2 =~ $re ]] ; then
 elif ! [ -x "$(command -v dafny)" ]; then
     echo "error: Dafny not found in path"
 else
-    dafny run --no-verify --unicode-char:false --target:cs "aoc-runner.dfy" --input "libraries/src/FileIO/FileIO.cs" -- "$1" "$2" "$3"
+    dafny run --no-verify --unicode-char:false --target:cs "aoc-runner.dfy" --standard-libraries -- "$1" "$2" "$3"
 fi

@@ -1,8 +1,8 @@
 
 //based on https://swtch.com/~rsc/regexp/regexp1.html
-include "../libraries/src/Wrappers.dfy"
+// include "../libraries/src/Wrappers.dfy"
 module RegEx {
-    import opened Wrappers
+    import opened Std.Wrappers
     datatype RegexPiece = Char(value: char) | GroupStart(id: nat) | GroupEnd(id: nat) | Plus | Star | Optional | Alt | Concat | WildChar
     datatype Paren = Paren(natom: int, nalt: int)
     function RegToChar(re: RegexPiece): char {

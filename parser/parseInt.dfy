@@ -1,13 +1,11 @@
 module ParseInt {
-    import Dafny.Collections.Seq
-    function power(x: int, i: nat): int {
-        if i == 0 then 1 else if i == 1 then x else x * power(x, i-1)
-    }
+    import Std.Collections.Seq
+    import Std.Arithmetic.Power
 
     function integerHelper(ns: string, sum: int, negative: bool): int {
         if |ns| == 0 then if negative then 0 - sum else sum
         else if ns[0] == '-' then integerHelper(ns[1..], sum, true)
-        else if 48 <= (ns[0] as int) < 58 then integerHelper(ns[1..], sum + ((ns[0] as int) - 48) * power(10, |ns|-1), negative)
+        else if 48 <= (ns[0] as int) < 58 then integerHelper(ns[1..], sum + ((ns[0] as int) - 48) * Power.Pow(10, |ns|-1), negative)
         else integerHelper(ns[1..], sum, negative)
     }
 
@@ -26,7 +24,7 @@ module ParseInt {
             if ns[i] == '-' {
                 negative := true;
             }else {
-                ret := ret + ((ns[i] as int) - 48) * power(10, |ns|-(i+1));
+                ret := ret + ((ns[i] as int) - 48) * Power.Pow(10, |ns|-(i+1));
             }
         }
         if negative {

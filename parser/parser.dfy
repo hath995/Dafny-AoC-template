@@ -1,7 +1,7 @@
-include "../libraries/src/Wrappers.dfy"
+// include "../libraries/src/Wrappers.dfy"
 
 module Parser {
-    import opened Wrappers
+    import opened Std.Wrappers
     datatype ParserState<T> = State(index: nat, targetString: string, result: Option<T>, isError: bool, error: string)
     type Parser<!T> = (ParserState<T>) -> ParserState<T>
 
@@ -48,7 +48,7 @@ module Parser {
 
     function Run<T(!new), U(!new)>(parser: ParserState<T> -> ParserState<U>, targetString: string): ParserState<U>
     {
-        var state:=State(0, targetString, None, false, "");
+        var state := State(0, targetString, None, false, "");
         parser(state)
     }
 

@@ -5,7 +5,7 @@ For those participating in Advent of Code this template provides a convenient st
 ### Installation
 Clone the repository into a new folder per year. 
 
-`git clone --recurse-submodules git@github.com:hath995/Dafny-AoC-template.git dafny-aoc-2023`
+`git clone git@github.com:hath995/Dafny-AoC-template.git dafny-aoc-2024`
 
 In the command line you should ensure that Dafny is in your path. Download the latest stable release [here](https://github.com/dafny-lang/dafny/releases). 
 
@@ -38,4 +38,5 @@ Steps:
 * [Dafny Stackoverflow](https://stackoverflow.com/questions/tagged/dafny)
 * [My Dafny Blog](https://dev.to/hath995/dafny-programming-language-and-software-verification-system-2afi)
 * [My Dafny Repo with many verified examples](https://github.com/hath995/dafny)
+* [My Dafny Repo with more verified examples](https://github.com/hath995/dafny4.4)
 

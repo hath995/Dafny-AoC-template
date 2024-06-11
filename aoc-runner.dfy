@@ -1,5 +1,3 @@
-include "libraries/src/dafny/FileIO/FileIO.dfy"
-include "libraries/src/Wrappers.dfy"
 include "problems/0/Problem0.dfy"
 include "problems/1/Problem1.dfy"
 include "problems/2/Problem2.dfy"
@@ -26,10 +24,10 @@ include "problems/22/Problem22.dfy"
 include "problems/23/Problem23.dfy"
 include "problems/24/Problem24.dfy"
 include "problems/25/Problem25.dfy"
-//run --no-verify --unicode-char:false --target:cs "aoc-runner.dfy" --input "libraries/src/FileIO/FileIO.cs" -- "1" "1" "System.ArgumentException:"
+//run --no-verify --unicode-char:false --target:cs "aoc-runner.dfy" "--standard-libraries" -- "0" "1"
 
 module AocRunner {
-    import opened Dafny.FileIO
+    import opened Std.FileIO
     import opened Problem0
     import opened Problem1
     import opened Problem2
@@ -67,7 +65,7 @@ module AocRunner {
     method Main(args: seq<string>) 
         decreases * 
     {
-        expect |args| > 2;
+        expect |args| > 2, "Usage: aoc-runner <problem#> <part#> [-t]";
         var problem := args[1];
         var part := args[2];
         var test := |args| > 3 && args[3] == "-t";
