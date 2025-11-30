@@ -68,7 +68,7 @@ module AocRunner {
         expect |args| > 2, "Usage: aoc-runner <problem#> <part#> [-t]";
         var problem := args[1];
         var part := args[2];
-        var test := |args| > 3 && args[3] == "-t";
+        var test := |args| > 3 && (args[3] == "-t" || args[3] == "--test");
         var file := "problems/"+problem+"/"+ if test then "example.txt" else "input.txt";
         var input := FileIO.ReadBytesFromFile(file);
         match input {
