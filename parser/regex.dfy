@@ -661,7 +661,6 @@ module RegEx {
     }
     
     method test_ReMatch() 
-        decreases *
     {
         var m, cap := ReMatch("abc","abc");
         expect m == true, "test 1 failed";
@@ -695,7 +694,6 @@ module RegEx {
     }
 
     method Main() 
-        decreases *
     {
         // var test := re2post("a(a+be*)(c|(d)|f)g");
         // var test := re2post("ac+de?(fg)*");
