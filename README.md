@@ -5,16 +5,21 @@ For those participating in Advent of Code this template provides a convenient st
 ### Installation
 Clone the repository into a new folder per year. 
 
-`git clone git@github.com:hath995/Dafny-AoC-template.git dafny-aoc-2024`
+`git clone git@github.com:hath995/Dafny-AoC-template.git dafny-aoc-2025`
 
-In the command line you should ensure that Dafny is in your path. Download the latest stable release [here](https://github.com/dafny-lang/dafny/releases). 
+In the command line you should ensure that Dafny is in your path. Download the latest stable release and unzip [here](https://github.com/dafny-lang/dafny/releases). 
+
+Note: On Mac using the Dafny tools has become a bit trickier. I recommend the following otherwise you will need to allow a dozen dlls in the mac security tab. 
+```
+xattr -r -d com.apple.quarantine /path/to/Dafny/Folder
+```
 
 Dafny also requires the .NET runtime which you can download [here](https://dotnet.microsoft.com/en-us/download).
 
 Install the Dafny VS-Code plugin [here](https://marketplace.visualstudio.com/items?itemName=dafny-lang.ide-vscode).
 
 ### How to Use
-Advent of Code has 25 problems and each problem has two parts. Traditionally, the first part is building up to the more complex second part. 
+Advent of Code has 25 problems, (12 problems as of 2025) and each problem has two parts. Traditionally, the first part is building up to the more complex second part. 
 
 Steps:
 1. Copy the example input into the problems/\<number\>/example.txt
@@ -33,10 +38,13 @@ Steps:
 * [Dafny Getting Started Guide](https://dafny.org/dafny/OnlineTutorial/guide)
 * [Dafny Language Reference](https://dafny.org/dafny/DafnyRef/DafnyRef.html)
 * [Dafny Power User Reference](http://leino.science/dafny-power-user/)
+* [Dafny Standard Library](https://github.com/dafny-lang/dafny/tree/master/Source/DafnyStandardLibraries)
 * [Program Proofs book by Rustan Leino](https://a.co/d/9hNp5yX)
+* [Dafny Zulip](https://dafny.zulipchat.com)
+* [Berlin Software Verification Discord](https://discord.gg/m5sMHc6G)
 * [Dafny Blog](https://dafny.org/blog/)
-* [Dafny Stackoverflow](https://stackoverflow.com/questions/tagged/dafny)
 * [My Dafny Blog](https://dev.to/hath995/dafny-programming-language-and-software-verification-system-2afi)
-* [My Dafny Repo with many verified examples](https://github.com/hath995/dafny)
-* [My Dafny Repo with more verified examples](https://github.com/hath995/dafny4.4)
+* [My Dafny Repo with some old verified examples](https://github.com/hath995/dafny)
+* [My Dafny Repo with more recent verified examples](https://github.com/hath995/dafny4.4)
+* [Dafny Stackoverflow](https://stackoverflow.com/questions/tagged/dafny)
 
