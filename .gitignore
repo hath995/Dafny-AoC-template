@@ -1,4 +1,10 @@
 *.dll
 *.cs
 libraries
+obj/
 *.runtimeconfig.json
+*.deps.json
+*.exe
+*.pdb
+*.csproj
+*.sln
