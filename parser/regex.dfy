@@ -3,6 +3,7 @@
 // include "../libraries/src/Wrappers.dfy"
 module RegEx {
     import opened Std.Wrappers
+    import opened Std.Strings
     datatype RegexPiece = Char(value: char) | GroupStart(id: nat) | GroupEnd(id: nat) | Plus | Star | Optional | Alt | Concat | WildChar
     datatype Paren = Paren(natom: int, nalt: int)
     function RegToChar(re: RegexPiece): char {
@@ -26,6 +27,7 @@ module RegEx {
         var groupid := 1;
         var groups: seq<nat> := [];
         var parens: seq<Paren> :=[];
+        var escape := false;
         var inCharacterClass := false;
         for i := 0 to |re| 
             invariant |groups| == |parens|
@@ -33,6 +35,16 @@ module RegEx {
             // print "char -> ";
             // print re[i];
             // print "\n";
+            if escape {
+                escape := false;
+                if natom > 1 {
+                    natom := natom -1;
+                    buf := buf + [Concat];
+                }
+                buf := buf + [Char(re[i])];
+                natom := natom + 1;
+                continue;
+            }
             match re[i] {
                 case '.' => {
                     if natom > 1 {
@@ -119,6 +131,9 @@ module RegEx {
                     }
                     buf := buf + [Optional];
                 }
+                case '\\' => {
+                    escape := true;
+                }
                 case _ => {
                     if natom > 1 {
                         natom := natom -1;
@@ -148,6 +163,15 @@ module RegEx {
             requires MatchChar?
         {
             c
+        }
+
+        function toS() : string {
+            match this {
+                case Split => "Split"
+                case Match => "Match"
+                case Wild => "Wild"
+                case MatchChar(c) => "Char("+[c]+")"
+            }
         }
     }
     class State {
@@ -188,6 +212,14 @@ module RegEx {
             (this.out != null && this.out1 != null ==> this.out1.repr !! this.out.repr)
 
         }
+
+        function toS(): string 
+            reads this, this.out1, this.out
+        {
+            var outid: string := if this.out != null then OfNat(this.out.id) else "null";
+            var out1id: string := if this.out1 != null then OfNat(this.out1.id) else "null";
+            "State("+OfNat(this.id)+","+this.c.toS()+",out: "+ outid +", out1: "+out1id+")"
+        }
     }
     
     datatype StateUpdate = Out(out: State) | Out1(out: State)
@@ -215,12 +247,7 @@ module RegEx {
         // }
     }
 
-    // method pop<T>(stack: seq<T>) returns (e: T)
-    //     requires |stack| > 0
-    // {
-    //     e := stack[|stack|-1];
-    //     stack:=stack[..|stack|-1];
-    // }
+
     function OutSet(ls: StateUpdate): State {
         match ls {
             case Out(out) => out
@@ -240,38 +267,21 @@ module RegEx {
         s.out1
     }
 
-
-    // method patch(l: Frag, s: Frag)
-    //     // requires l.Valid()
-    //     modifies l.repr
-    //     modifies l.out
-    //     modifies set i | 0 <= i < |l.out[..]| :: OutSet(l.out[i])
-    //     modifies set i | 0 <= i < l.out.Length :: OutSet(l.out[i])
-    //     // modifies set i | 0 <= i < l.out.Length :: sout(OutSet(l.out[i]))
-    // {
-    //     var i:=0;
-    //     while i < l.out.Length
-    //         invariant 0 <= i <= l.out.Length
-    //     {
-    //         match l.out[i]
-    //         {
-    //             case Out(out) => {
-    //                 out.out := s.start;
-    //             }
-    //             case Out1(out) => {
-    //                 out.out1 := s.start;
-    //             }
-    //         }
-    //         i := i+1;
-    //     }
-    // }
-
-    method patch(l: FragC, s: FragC)
+    method patch(l: FragC, s: FragC, ghost states: seq<State?>)
         modifies set i | 0 <= i < |l.out| :: OutSet(l.out[i])
+        requires forall ss :: ss in states && ss != null ==> (ss.out != null ==> ss.out in states) && (ss.out1 != null ==> ss.out1 in states)
+        requires forall o :: o in l.out ==> OutSet(o) in states
+        requires forall o :: o in s.out ==> OutSet(o) in states
+        requires l.start in states
+        requires s.start in states
+        ensures forall ss :: ss in states && ss != null ==> (ss.out != null ==> ss.out in states) && (ss.out1 != null ==> ss.out1 in states)
     {
         var i:=0;
         while i < |l.out|
             invariant 0 <= i <= |l.out|
+            invariant forall o :: o in l.out ==> OutSet(o) in states
+            invariant forall o :: o in s.out ==> OutSet(o) in states
+            invariant forall ss :: ss in states && ss != null ==> (ss.out != null ==> ss.out in states) && (ss.out1 != null ==> ss.out1 in states)
         {
             match l.out[i]
             {
@@ -286,8 +296,10 @@ module RegEx {
         }
     }
 
-    method post2nfa(postfix: seq<RegexPiece>) returns (start: State)
+    method post2nfa(postfix: seq<RegexPiece>) returns (start: State, ghost allstates: set<State>)
         ensures fresh(start)
+        ensures start in allstates
+        ensures ValidStates(allstates)
     {
         expect |postfix| > 0, "postfix seq should contain an element";
         var stack: seq<FragC> := [];
@@ -297,6 +309,9 @@ module RegEx {
         for i:=0 to |postfix| 
             invariant forall frag :: frag in stack ==> fresh(frag.start)
             invariant forall state :: state !=null && state in states ==> fresh(state)
+            invariant forall frag :: frag in stack ==> frag.start in states
+            invariant forall frag :: frag in stack ==> forall o :: o in frag.out ==> OutSet(o) in states
+            invariant forall ss :: ss in states && ss != null ==> (ss.out != null ==> ss.out in states) && (ss.out1 != null ==> ss.out1 in states)
             invariant |states| == i
         {
             match postfix[i] {
@@ -326,6 +341,7 @@ module RegEx {
                     states := states +[null];
                     assume {:axiom} GroupStart.0 < i;
                     for j := GroupStart.0 to i 
+                        invariant forall ss :: ss in states && ss != null ==> (ss.out != null ==> ss.out in states) && (ss.out1 != null ==> ss.out1 in states)
                     {
                         if(states[j] != null) {
                             assert states[j] in states;
@@ -343,7 +359,7 @@ module RegEx {
                     stack:=stack[..|stack|-1];
                     assume {:axiom} forall i :: 0 <= i < |e1.out| ==>  fresh(OutSet(e1.out[i]));
                     states := states +[null];
-                    patch(e1, e2);
+                    patch(e1, e2, states);
                     stack := stack + [FragC(e1.start, e2.out)];
                 }
                 case Alt => {
@@ -380,7 +396,7 @@ module RegEx {
                     states := states+[s];
                     sid := sid+1;
                     assume {:axiom} forall i :: 0 <= i < |e1.out| ==>  fresh(OutSet(e1.out[i]));
-                    patch(e1, FragC(s,[]));
+                    patch(e1, FragC(s,[]), states);
                     stack := stack + [FragC(s, [Out1(s)])];
                 }
                 case Plus => {
@@ -393,7 +409,7 @@ module RegEx {
                     states := states+[s];
                     sid := sid+1;
                     assume {:axiom} forall i :: 0 <= i < |e1.out| ==>  fresh(OutSet(e1.out[i]));
-                    patch(e1, FragC(s, []));
+                    patch(e1, FragC(s, []), states);
                     stack := stack+[FragC(e1.start, [Out1(s)])];
                 }
             }
@@ -403,45 +419,71 @@ module RegEx {
         var e := stack[|stack|-1];
         var matchState := new State(sid, Match, null, null, false);
         assume  {:axiom} forall i :: 0 <= i < |e.out| ==>  fresh(OutSet(e.out[i]));
-        patch(e, FragC(matchState, []));
-        return e.start;
+        states :=  states+[matchState];
+        patch(e, FragC(matchState, []), states);
+        return e.start, set s | s in states;
     }
 
-    method addstate(l: seq<State>, s: State?) returns (res: Result<seq<State>, string>)
-        decreases *
+    ghost predicate ValidStates(allstates: set<State>) 
+        reads allstates
+    {
+        forall ss :: ss in allstates ==> (ss.out != null ==> ss.out in allstates) && (ss.out1 != null ==> ss.out1 in allstates)
+    }
+    //Epsilon closure roughly
+    method addstate(l: seq<State>, s: State?, ghost allstates: set<State>, visited: set<State>) returns (res: Result<seq<State>, string>, new_visited: set<State>)
+        requires visited <= allstates
+        requires ValidStates(allstates)
+        requires s != null ==> s in allstates
+        requires forall x :: x in l ==> x in visited
+        ensures visited <= new_visited
+        ensures new_visited <= allstates
+        ensures res.Success? ==> forall x :: x in res.Extract() ==> x in allstates && x in new_visited
+        decreases allstates - visited
     {
         if s == null {
-            return Failure("Added state was null");
+            return Failure("Added state was null"), visited;
+        }else if s in visited {
+            return Success(l), visited;
         } else if s!=null && s.c.Split? {
-            var next := addstate(l, s.out);
+            var next, v1 := addstate(l, s.out, allstates, visited+{s});
             if next.Success? {
-                res := addstate(next.Extract(), s.out1);
+                var next2, v2 := addstate(next.Extract(), s.out1, allstates, v1);
+                return next2, v2;
             }else{
-                res := next;
+                // res := next;
+                return next, v1;
             }
-            
         } else {
-            return Success(l+[s]);
+            return Success(l+[s]), visited+{s};
         }
     }
 
     type GroupCapture = map<nat, (nat,nat)>
 
-    method step(clist: seq<State>, c: char, i: int, groupCaptures: GroupCapture, completedGroupCatures: GroupCapture)
+    method step(clist: seq<State>, c: char, i: int, groupCaptures: GroupCapture, completedGroupCatures: GroupCapture, ghost allstates: set<State>)
         returns (nlist: seq<State>, ngroupCaptures: GroupCapture, ncompletedGroupCatures: GroupCapture )
+        requires ValidStates(allstates)
+        requires forall cl :: cl in clist ==> cl in allstates
+        ensures forall cl :: cl in nlist ==> cl in allstates
         requires 0 <=i
-        decreases *
     {
         nlist := [];
         ngroupCaptures := groupCaptures;
         ncompletedGroupCatures := completedGroupCatures;
-        for j:=0 to |clist| {
+        var visited:set<State> := {};
+        for j:=0 to |clist|
+            invariant visited <= allstates
+            invariant forall x :: x in nlist  ==> x in allstates && x in visited
+        {
             var s := clist[j];
             if s.c.Wild? || (s.c.MatchChar? && s.c.c == c) {
-                var next := addstate(nlist, s.out);
+                var next, nv := addstate(nlist, s.out, allstates, visited);
                 if next.Success? {
                     nlist := next.Extract();
+                    visited := nv;
                 }
+
+                // nlist := nlist + if s.out != null && s.out1 != null then [s.out, s.out1] else if s.out != null then [s.out] else [];
                 var groups: set<nat> := {};
                 while s.groups-groups != {} {
                     var g :| g in s.groups-groups;
@@ -540,8 +582,10 @@ module RegEx {
         if |clist| > 0 then if clist[0].c == Match then true else isMatch(clist[1..]) else false
     }
 
-    method execRe(start: State, s: string) returns (matches: bool, captures: seq<string>)
-        decreases *
+    method execRe(start: State, s: string, ghost allstates: set<State>) returns (matches: bool, captures: seq<string>)
+        requires start in allstates
+        requires ValidStates(allstates)
+        // decreases *
     {
         var groupCaptures: GroupCapture := map[];
         var completedGroupCatures: GroupCapture := map[];
@@ -554,12 +598,14 @@ module RegEx {
             groups := groups + {g};
         }
         var clist: seq<State> := [];
-        var startList := addstate([], start);
+        var visited: set<State> := {};
+        var startList, nv := addstate([], start, allstates, visited);
         if startList.Success? {
             clist := startList.Extract();
             for i:=0 to |s| 
+                invariant forall cl :: cl in clist ==> cl in allstates
             {
-                clist, groupCaptures, completedGroupCatures := step(clist, s[i], i, groupCaptures, completedGroupCatures);        
+                clist, groupCaptures, completedGroupCatures := step(clist, s[i], i, groupCaptures, completedGroupCatures, allstates);        
             }
             captures := [];
             for k:= 0 to |completedGroupCatures| {
@@ -578,13 +624,13 @@ module RegEx {
     }
 
     method ReMatch(re: string, targetString: string) returns (matches: bool, captures: seq<string>)
-        decreases *
+        // decreases *
     {
         var postfix := re2post(re);
         match postfix {
             case Success(post) => {
-                var start := post2nfa([GroupStart(0)]+post+[GroupEnd(0)]);
-                matches, captures := execRe(start, targetString);
+                var start,allstates := post2nfa([GroupStart(0)]+post+[GroupEnd(0)]);
+                matches, captures := execRe(start, targetString, allstates);
             }
             case Failure(err) => {
                 print err;
@@ -602,10 +648,16 @@ module RegEx {
             var value := res.Extract();
             print seq(|value|, i requires 0 <= i < |value| => RegToChar(value[i]));
         }
+
+        var res2 := re2post("mul\\((0|1|2)+\\)");
+        expect res2.Success?;
+        if res2.Success? {
+            var value := res2.Extract();
+            print value;
+        }
     }
 
     method test_post2nfa() {
-
     }
     
     method test_ReMatch() 
@@ -632,6 +684,14 @@ module RegEx {
         var m5, cap5 := ReMatch("add(.+)","addxy 12,355");
         print "\nproblem5 ",m5, cap5;
         expect m5 == true, "test 5 failed";
+
+        var m6, cap6 := ReMatch("add\\(.+,.+\\)","add(12,355)");
+        print "\nproblem6 ",m6, cap6;
+        expect m6 == true, "test 6 failed";
+
+        var m7, cap7 := ReMatch( "\\(((0|1|2|3|4|5|6|7|8|9)+),((0|1|2|3|4|5|6|7|8|9)+)\\).+","(12,403)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))");
+        print "\nproblem7 ",m7, cap7;
+        expect m7 == true, "test 7 failed";
     }
 
     method Main() 
@@ -639,12 +699,14 @@ module RegEx {
     {
         // var test := re2post("a(a+be*)(c|(d)|f)g");
         // var test := re2post("ac+de?(fg)*");
-        // print test;
+        // print "\n", test;
         // print "\n";
         // match test {
         //     case Success(value) => print seq(|value|, i requires 0 <= i < |value| => RegToChar(value[i]));
         //     case Failure(err) => print err;
         // }
+        // expect test.Success?;
+        // var nfa, allstates := post2nfa(test.Extract());
         test_re2post();
         test_ReMatch();
     }
