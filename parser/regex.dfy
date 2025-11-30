@@ -450,7 +450,6 @@ module RegEx {
                 var next2, v2 := addstate(next.Extract(), s.out1, allstates, v1);
                 return next2, v2;
             }else{
-                // res := next;
                 return next, v1;
             }
         } else {
@@ -483,7 +482,6 @@ module RegEx {
                     visited := nv;
                 }
 
-                // nlist := nlist + if s.out != null && s.out1 != null then [s.out, s.out1] else if s.out != null then [s.out] else [];
                 var groups: set<nat> := {};
                 while s.groups-groups != {} {
                     var g :| g in s.groups-groups;
@@ -585,7 +583,6 @@ module RegEx {
     method execRe(start: State, s: string, ghost allstates: set<State>) returns (matches: bool, captures: seq<string>)
         requires start in allstates
         requires ValidStates(allstates)
-        // decreases *
     {
         var groupCaptures: GroupCapture := map[];
         var completedGroupCatures: GroupCapture := map[];
@@ -624,7 +621,6 @@ module RegEx {
     }
 
     method ReMatch(re: string, targetString: string) returns (matches: bool, captures: seq<string>)
-        // decreases *
     {
         var postfix := re2post(re);
         match postfix {
@@ -708,6 +704,11 @@ module RegEx {
         test_re2post();
         test_ReMatch();
     }
+
+    const Digits := "(0|1|2|3|4|5|6|7|8|9)"
+    const LowerLatin := "(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)"
+    const UpperLatin := "(A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z)"
+    const LatinLetters := "(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z|A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z)"
     
-    export provides ReMatch
+    export provides ReMatch, Digits, LowerLatin, UpperLatin, LatinLetters
 }
